@@ -42,8 +42,11 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: '1.21.2'
+
+    - name: Get C dependencies
+      run: sudo apt-get install golang gcc libgl1-mesa-dev xorg-dev
         
-    - name: Get dependencies
+    - name: Get Go dependencies
       run: go get .
 
     - name: Build
