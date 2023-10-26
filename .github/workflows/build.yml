@@ -1,0 +1,51 @@
+name: Build Git Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  windows:
+    name: "Build for Windows"
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21.2'
+
+    - name: Build
+      run: go build -o 'mobing-windows.exe' -ldflags '-s' .
+
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v3.1.3
+      with:
+        name: "mobing-windows"
+        path: "mobing-windows.exe"
+
+  linux:
+    name: "Build for Linux"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21.2'
+
+    - name: Build
+      run: go build -o 'mobing-linux' -ldflags '-s' .
+
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v3.1.3
+      with:
+        name: "mobing-linux"
+        path: "mobing-linux"
