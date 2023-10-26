@@ -42,12 +42,12 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: '1.21.2'
+        
+    - name: Get dependencies
+      run: go get .
 
     - name: Build
       run: go build -o 'mobing-linux' -ldflags '-s' .
-
-    - name: Get dependencies
-      run: go get .
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v3.1.3
