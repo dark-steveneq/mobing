@@ -4,7 +4,7 @@ go 1.21.2
 
 require (
 	fyne.io/fyne/v2 v2.4.1
-	github.com/dark-steveneq/mobiapi v0.0.0-20231026091646-b4a1eb0b9f9f
+	github.com/dark-steveneq/mobiapi v0.0.0-20231029072519-ccee3e9c1659
 	github.com/zalando/go-keyring v0.2.3
 )
 
