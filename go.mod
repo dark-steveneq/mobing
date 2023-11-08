@@ -5,12 +5,15 @@ go 1.21.2
 require (
 	fyne.io/fyne/v2 v2.4.1
 	github.com/dark-steveneq/mobiapi v0.0.0-20231026091646-b4a1eb0b9f9f
+	github.com/zalando/go-keyring v0.2.3
 )
 
 require (
 	fyne.io/systray v1.10.1-0.20230722100817-88df1e0ffa9a // indirect
 	github.com/PuerkitoBio/goquery v1.8.1 // indirect
+	github.com/alessio/shellescape v1.4.1 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
+	github.com/danieljoos/wincred v1.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fredbi/uri v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect

@@ -10,7 +10,7 @@ import (
 func messagerefresh(api *mobiapi.MobiAPI, messageContainer *fyne.Container, messageContents *fyne.Container) {
 	messageContainer.RemoveAll()
 	messageContainer.Add(container.NewCenter(container.NewVBox(widget.NewLabel("Loading Messages..."), widget.NewProgressBarInfinite())))
-	messages, err := api.GetReadMessages(false)
+	messages, err := api.GetReceivedMessages(false)
 	if err != nil {
 		messageContainer.RemoveAll()
 		messageContainer.Add(container.NewCenter(container.NewVBox(widget.NewLabel("Couldn't retrieve messages!"))))
@@ -28,6 +28,7 @@ func messagerefresh(api *mobiapi.MobiAPI, messageContainer *fyne.Container, mess
 				messageContents.Add(widget.NewLabel("Couldn't read message, reason:"))
 				messageContents.Add(widget.NewLabelWithStyle(err.Error(), fyne.TextAlignCenter, widget.RichTextStyleBlockquote.TextStyle))
 			} else {
+				messageContents.RemoveAll()
 				messageContents.Add(widget.NewRichTextWithText("Title: " + message.Title + "\nFrom: " + message.Author))
 				messageContents.Add(widget.NewRichTextWithText(messagecontent.RawContent))
 			}
@@ -50,9 +51,11 @@ func Mainui(a fyne.App, api *mobiapi.MobiAPI) {
 	messageContainer := container.NewVBox()
 	messageContents := container.NewVBox()
 	go messagerefresh(api, messageContainer, messageContents)
+	messageTab := container.NewVSplit(searchContainer, container.NewHSplit(container.NewVScroll(messageContainer), messageContents))
+	messageTab.SetOffset(0)
 
 	tabContainer := container.NewAppTabs(
-		container.NewTabItem("Messages", container.NewVBox(searchContainer, container.NewHSplit(container.NewVScroll(messageContainer), messageContents))),
+		container.NewTabItem("Messages", messageTab),
 	)
 	tabContainer.OnSelected = func(ti *container.TabItem) {
 		if ti.Text == "Messages" {

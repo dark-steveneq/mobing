@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	a := app.New()
-	api, err := mobiapi.New("", "mobiNG - https://github.com/dark-steveneq")
+	a := app.NewWithID("mobiNG")
+	api, err := mobiapi.New("")
 	if err != nil {
 		log.Println("Trouble creating API instance, reason:", err)
 		a.SendNotification(fyne.NewNotification("Couldn't start mobiNG!", "Trouble creating API instance, reason: '"+err.Error()+"'."))
