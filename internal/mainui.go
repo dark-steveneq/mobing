@@ -7,62 +7,91 @@ import (
 	"github.com/dark-steveneq/mobiapi"
 )
 
-func messagerefresh(api *mobiapi.MobiAPI, messageContainer *fyne.Container, messageContents *fyne.Container) {
-	messageContainer.RemoveAll()
-	messageContainer.Add(container.NewCenter(container.NewVBox(widget.NewLabel("Loading Messages..."), widget.NewProgressBarInfinite())))
+func messageRefresh(a fyne.App, w fyne.Window, api *mobiapi.MobiAPI, list *fyne.Container, info *widget.RichText, cont *widget.Entry) {
+	list.RemoveAll()
+	list.Add(widget.NewLabelWithStyle("Loading...", fyne.TextAlignCenter, widget.RichTextStyleHeading.TextStyle))
+	list.Add(widget.NewProgressBarInfinite())
 	messages, err := api.GetReceivedMessages(false)
 	if err != nil {
-		messageContainer.RemoveAll()
-		messageContainer.Add(container.NewCenter(container.NewVBox(widget.NewLabel("Couldn't retrieve messages!"))))
+		list.RemoveAll()
+		list.Add(widget.NewLabelWithStyle("Couldn't get messages!", fyne.TextAlignCenter, widget.RichTextStyleHeading.TextStyle))
+		return
 	}
-	messageContainer.RemoveAll()
-	for i, rmessage := range messages {
+	list.RemoveAll()
+	for _, rmessage := range messages {
 		message := rmessage
-		messageContainer.Add(container.NewVBox(widget.NewLabelWithStyle(message.Title, fyne.TextAlignCenter, widget.RichTextStyleBlockquote.TextStyle), widget.NewLabel("From: "+message.Author), widget.NewButton("Read", func() {
-			messageContents.RemoveAll()
-			messageContents.Add(widget.NewLabel("Loading..."))
-			messageContents.Add(widget.NewProgressBarInfinite())
+		list.Add(newWidgetMessage(message.Title, message.Author, message.Read, func() {
+			info.Segments = []widget.RichTextSegment{}
+			cont.SetText("Loading message...")
+			info.Refresh()
+			cont.Refresh()
 			messagecontent, err := api.GetMessageContent(message)
 			if err != nil {
-				messageContents.RemoveAll()
-				messageContents.Add(widget.NewLabel("Couldn't read message, reason:"))
-				messageContents.Add(widget.NewLabelWithStyle(err.Error(), fyne.TextAlignCenter, widget.RichTextStyleBlockquote.TextStyle))
-			} else {
-				messageContents.RemoveAll()
-				messageContents.Add(widget.NewRichTextWithText("Title: " + message.Title + "\nFrom: " + message.Author))
-				messageContents.Add(widget.NewRichTextWithText(messagecontent.RawContent))
+				info.Segments = []widget.RichTextSegment{}
+				info.Refresh()
+				cont.SetText("Couldn't read message, reason: " + err.Error())
+				return
 			}
-		})))
-		if i != len(messages) {
-			messageContainer.Add(widget.NewSeparator())
-		}
+			info.Segments = []widget.RichTextSegment{
+				&widget.TextSegment{
+					Text:  "Title:",
+					Style: widget.RichTextStyleInline,
+				},
+				&widget.TextSegment{
+					Text:  messagecontent.Info.Title,
+					Style: widget.RichTextStyleParagraph,
+				},
+				&widget.TextSegment{
+					Text:  "From:",
+					Style: widget.RichTextStyleInline,
+				},
+				&widget.TextSegment{
+					Text:  messagecontent.Info.Author,
+					Style: widget.RichTextStyleParagraph,
+				},
+			}
+			info.Refresh()
+			cont.Refresh()
+			cont.SetText(messagecontent.Content)
+		}))
 	}
 }
 
 func Mainui(a fyne.App, api *mobiapi.MobiAPI) {
 	w := a.NewWindow("mobiNG")
-	w.Resize(fyne.NewSize(812, 620))
+	w.Resize(fyne.NewSize(812, 580))
 
-	searchWidget := widget.NewEntry()
-	searchWidget.SetPlaceHolder("Search")
-	commitSearchWidget := widget.NewButton("Search", func() {})
-	searchContainer := container.NewHSplit(searchWidget, commitSearchWidget)
-	searchContainer.SetOffset(1)
-	messageContainer := container.NewVBox()
-	messageContents := container.NewVBox()
-	go messagerefresh(api, messageContainer, messageContents)
-	messageTab := container.NewVSplit(searchContainer, container.NewHSplit(container.NewVScroll(messageContainer), messageContents))
-	messageTab.SetOffset(0)
-
-	tabContainer := container.NewAppTabs(
-		container.NewTabItem("Messages", messageTab),
-	)
-	tabContainer.OnSelected = func(ti *container.TabItem) {
-		if ti.Text == "Messages" {
-			go messagerefresh(api, messageContainer, messageContents)
-		}
+	api.OnLostConnection = func() {
+		a.SendNotification(fyne.NewNotification("Disconnected from mobiDziennik", "Sorry for the inconvinience!"))
+		Loginui(a, api)
+		w.Close()
 	}
 
-	w.SetContent(tabContainer)
+	// Messages
+	messageListContainer := container.NewVBox()
+	messageInfoWidget := widget.NewRichTextFromMarkdown("")
+	messageContWidget := widget.NewMultiLineEntry()
+	messageRSContainer := container.NewVSplit(
+		messageInfoWidget,
+		messageContWidget,
+	)
+	messageRootContainer := container.NewHSplit(
+		container.NewVScroll(messageListContainer),
+		messageRSContainer,
+	)
+
+	messageContWidget.Disable()
+	messageRSContainer.SetOffset(0)
+	messageRootContainer.SetOffset(0.5)
+
+	// Tabs
+	rootContainer := container.NewAppTabs(
+		container.NewTabItem("Messages", messageRootContainer),
+	)
+
+	// Background
+	go messageRefresh(a, w, api, messageListContainer, messageInfoWidget, messageContWidget)
+
+	w.SetContent(rootContainer)
 	w.Show()
 }

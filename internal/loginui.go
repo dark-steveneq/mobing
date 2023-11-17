@@ -171,7 +171,7 @@ func Loginui(a fyne.App, api *mobiapi.MobiAPI) {
 		funcLock()
 		if err := api.SetupProxy(proxyAddrWidget.Text, proxyAnySSLWidget.Checked); !proxyToggleWidget.Checked || err != nil {
 			api.SetupProxy("", false)
-			if err != nil {
+			if proxyToggleWidget.Checked && err != nil {
 				funcUnlock()
 				a.SendNotification(fyne.NewNotification("Couldn't setup proxy", "Reason: "+err.Error()))
 				return

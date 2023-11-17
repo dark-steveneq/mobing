@@ -23,7 +23,7 @@ jobs:
       run: go get .
 
     - name: Build
-      run: go build -o 'mobing-windows.exe' -ldflags '-s' .
+      run: go build -o 'mobing-windows.exe' -tags noemoji -ldflags '-s' .
 
 
     - name: Upload Build Artifact
@@ -50,7 +50,7 @@ jobs:
       run: go get .
 
     - name: Build
-      run: go build -o 'mobing-linux' -ldflags '-s' .
+      run: go build -o 'mobing-linux' -tags noemoji -ldflags '-s' .
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v3.1.3
